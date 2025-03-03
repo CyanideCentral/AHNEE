@@ -6,7 +6,7 @@ This is the implementation of SAHE algorithm, designed for the attributed hyperg
 
 Required packages are installed by running:
 
-    pip install -r requirements.txt
+    conda create --name AHNEE --file requirements.txt -c pytorch
 
 ### Usage
 
