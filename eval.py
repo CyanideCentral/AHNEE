@@ -1,18 +1,10 @@
 import numpy as np
 import scipy.sparse as sp
-import pickle
-from tqdm import tqdm
-from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.multiclass import OneVsRestClassifier
-from load import Dataset, AttrHypergraph
-import torch
-import torch.nn as nn
+from sklearn.linear_model import SGDClassifier
+from load import AttrHypergraph
 import config
-import copy
 import utils
-from munkres import Munkres
 from sklearn import metrics
-from sahe import sahe
 
 def node_classification_eval(embeddings, dataset):
     if dataset.n > 1000000:
