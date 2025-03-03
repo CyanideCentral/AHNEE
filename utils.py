@@ -1,10 +1,5 @@
-import pickle
 import numpy as np
 import scipy.sparse as sp
-import os
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import normalize
-from sklearn.metrics.pairwise import rbf_kernel
 
 def aggregate_by_hyperedges(embeddings, hyperedges, reduce = 'sum'):
     if reduce == 'sum':

@@ -1,8 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
 from scipy.fft import fft, ifft
-from scipy.optimize import minimize, lsq_linear
-from numpy.polynomial.polynomial import Polynomial
 import config
 
 # Implementation of Polynomial Tensor Sketching (PTS)

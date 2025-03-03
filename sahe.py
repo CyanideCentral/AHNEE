@@ -36,7 +36,6 @@ def extend_hypergraph(ahg, knn = 10, index_type = "IVF512,PQ10"):
 def sahe(ahg):
     start_time = time.perf_counter()
     H, hyperedge_weights= extend_hypergraph(ahg, knn=config.knn)
-    config.rng = np.random.default_rng(0)
     vol = float(H.sum())
     m, n = H.shape
     deg_vec = (H.T@hyperedge_weights[:,np.newaxis]).flatten()
@@ -55,8 +54,8 @@ def sahe(ahg):
         return dot_product_mkl(norm_H, x, cast=True)
     def linear_operator1(x):
         return dot_product_mkl(norm_H.T, x, cast=True)
-    lap_lo = sp.linalg.LinearOperator((m, n),matvec = linear_operator,rmatvec = linear_operator1)
-    U, s, VT = sp.linalg.svds(lap_lo, min(config.svd_rank, n//2), tol=config.svd_tol, random_state=config.rng)
+    H_LO = sp.linalg.LinearOperator((m, n),matvec = linear_operator,rmatvec = linear_operator1)
+    U, s, VT = sp.linalg.svds(H_LO, min(config.svd_rank, n//2), tol=config.svd_tol, random_state=config.rng)
     sigma_sq = s**2
     sigma_T = np.full_like(sigma_sq, config.alpha)
     for i in range(1, config.window+1):
@@ -64,7 +63,7 @@ def sahe(ahg):
 
     # Approximating HMS-N node similarity
     F_v = np.sqrt(vol) * sp.diags(np.sqrt(sigma_T)).dot(VT@D_v).T
-    Y_v, Th_v = pts_tlog(F_v)
+    Y_v, Th_v = pts_tlog(F_v) # Polynomial tensor sketch
     YTh_v = Y_v @ Th_v
     def laplacian_operator(v):
         return Y_v @ (YTh_v.T @ v) # L(v) = Y (\Theta Y (v))
@@ -74,7 +73,7 @@ def sahe(ahg):
 
     # Approximating HMS-E hyperedge similarity
     F_e = np.sqrt(vol)*sp.diags(np.sqrt(sigma_T)).dot(D_e.dot(U)[:m-n].T).T
-    Y_e, Th_e = pts_tlog(F_e)
+    Y_e, Th_e = pts_tlog(F_e) # Polynomial tensor sketch
     YTh_e = Y_e @ Th_e
     def laplacian_operator(v):
         return Y_e @ (YTh_e.T @ v)  # L(v) = Y (\Theta Y (v))

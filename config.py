@@ -1,8 +1,8 @@
 import numpy as np
-rng = np.random.default_rng(0)
+rng = np.random.default_rng()
 
 embedding_dim = 32 # k
-knn = 10
+knn = 10 # K
 beta = 1.0
 svd_rank = 32 # r
 svd_tol = 0
@@ -11,7 +11,7 @@ alpha = 0.1
 
 sketch_dim = 128 # b
 poly_deg = 3 # \tau
-fit_sample = 10
+fit_sample = 10 # c
 
 verbose = True
 

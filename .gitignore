@@ -3,7 +3,7 @@
 **/neg_hypergraph.npz
 
 # temporary files
-temp/
+output/
 logs/
 
 # Byte-compiled files
