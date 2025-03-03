@@ -5,7 +5,7 @@ from eval import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='cora-ca')
+    parser.add_argument('--data', type=str, default='cora-ca1')
     args = parser.parse_args()
 
     dataset = Dataset(args.data)

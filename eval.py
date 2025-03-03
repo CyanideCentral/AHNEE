@@ -43,18 +43,17 @@ def hyperedge_link_prediction_eval(embedder, dataset):
     if dataset.n > 1000000:
         config.lp_train_ratio = 0.98
     if dataset.neg_hg is None or (config.lp_train_ratio not in dataset.edge_splits.keys()):
-        dataset.new_lp_split(train_ratio = config.lp_train_ratio)
+        dataset.new_hlp_split(train_ratio = config.lp_train_ratio)
     acc_results = []
     ap_results = []
     roc_auc_macros = []
     num_splits = len(dataset.edge_splits[config.lp_train_ratio])
     num_splits = min(num_splits, config.lp_num_splits)
     all_hyperedges = sp.csr_matrix(sp.vstack([dataset.hypergraph, dataset.neg_hg]))
-    time_ram_list = []
     embeddings_list = []
     for spid in range(num_splits):
         train_hg = utils.add_unconnected_singletons(all_hyperedges[dataset.edge_splits[config.lp_train_ratio][spid][0],:])
-        input_ahg = AttrHypergraph(train_hg, dataset.features,dataset.name,dataset.labels)
+        input_ahg = AttrHypergraph(train_hg, dataset.attributes,dataset.name,dataset.labels)
         embeddings, _, _ = embedder(input_ahg)
         embeddings_list.append(embeddings)
         train_idx, train_labels = dataset.edge_splits[config.lp_train_ratio][spid][1]
@@ -77,10 +76,10 @@ def hyperedge_link_prediction_eval(embedder, dataset):
 def hyperedge_classification_eval(embeddings, dataset):
     if dataset.hypergraph.shape[0] > 1000000:
         config.hec_train_ratio = 0.02
-    if dataset.edge_single_splits is None or config.hec_train_ratio not in dataset.edge_single_splits:
-        data_splits = dataset.new_edge_single_cls_split(config.hec_train_ratio)
+    if dataset.hyperedge_splits is None or config.hec_train_ratio not in dataset.hyperedge_splits:
+        data_splits = dataset.new_hyperedge_cls_split(config.hec_train_ratio)
     else:
-        data_splits = dataset.edge_single_splits[config.hec_train_ratio]
+        data_splits = dataset.hyperedge_splits[config.hec_train_ratio]
     mif1_results, maf1_results = [], []
     num_splits = min(len(data_splits), config.hec_num_splits)
     for splits in range(num_splits):

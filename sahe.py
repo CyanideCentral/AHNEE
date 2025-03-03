@@ -10,16 +10,16 @@ from sparse_dot_mkl import dot_product_mkl
 from pts import pts_tlog
 
 def extend_hypergraph(ahg, knn = 10, weighted = True, index_type = "IVF512,PQ10", return_index = False):
-    features = ahg.features.toarray()
-    n, d = features.shape
-    faiss.normalize_L2(features)
+    attributes = ahg.attributes.toarray()
+    n, d = attributes.shape
+    faiss.normalize_L2(attributes)
     if n > 100000:
         index = faiss.index_factory(d, index_type, faiss.METRIC_INNER_PRODUCT)
-        index.train(features)
+        index.train(attributes)
     else:
         index = faiss.IndexFlatIP(d)
-    index.add(features)
-    D, I = index.search(features, knn+1)
+    index.add(attributes)
+    D, I = index.search(attributes, knn+1)
     H = sp.csr_matrix((D.flatten(), I.flatten(), np.arange(0, n*(knn+1)+1, knn+1)), shape=(n, n))
     self_weight = 1.0
     H.setdiag(self_weight)
