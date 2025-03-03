@@ -1,18 +1,18 @@
 import argparse
 from load import Dataset
 from sahe import sahe
-from eval import node_classification_eval, hyperedge_link_prediction_eval
+from eval import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='cora-ca1')
-    parser.add_argument('--task', type=str, default='cls')
+    parser.add_argument('--data', type=str, default='cora-ca')
     args = parser.parse_args()
 
     dataset = Dataset(args.data)
-    if args.task == 'cls':
-        node_classification_eval(sahe, dataset)
-    elif args.task == 'hlp':
-        hyperedge_link_prediction_eval(sahe, dataset)
-    else:
-        print(f'Unknown task: {args.task}')
+    node_emb, hyperedge_emb, cost = sahe(dataset.full_ahg)
+    print(f"Embedding time: {cost[0]:.3f}s / RAM: {cost[1]:.3f}GB")
+    
+    node_classification_eval(node_emb, dataset)
+    hyperedge_classification_eval(hyperedge_emb, dataset)
+    
+    hyperedge_link_prediction_eval(sahe, dataset)

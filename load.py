@@ -202,16 +202,6 @@ class Dataset:
         pickle.dump(edge_multi_cls_split, open(f'data/{self.name}/edge_multi_split_{train_ratio}.pickle', 'wb'))
         return edge_multi_cls_split
 
-# def load_data(dataset_name):
-#     dataset = {}
-#     dataset['hypergraph'] = sp.load_npz(f'data/{dataset_name}/hypergraph.npz')
-#     dataset['features'] = sp.load_npz(f'data/{dataset_name}/features.npz')
-#     dataset['labels'] = np.load(f'data/{dataset_name}/labels.npy')
-#     # dataset['node_split'] = pickle.load(open(f'data/{dataset_name}/node_split_0.01.pickle', 'rb'))
-#     # dataset['edge_split'] = pickle.load(open(f'data/{dataset_name}/edge_split.pickle', 'rb'))
-#     dataset['name'] = dataset_name
-#     return dataset
-
 if __name__== '__main__':
 
     dataset = Dataset("cora-CA")
