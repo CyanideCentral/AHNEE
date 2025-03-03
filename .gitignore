@@ -1,0 +1,8 @@
+# temporary files
+temp/
+logs/
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class

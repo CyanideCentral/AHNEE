@@ -15,7 +15,7 @@ class AttrHypergraph:
 
 class Dataset:
     def __init__(self, dataset_name):
-        self.name = dataset_name
+        self.name = dataset_name.lower()
         self.rng = np.random.default_rng(0)
         data_files = os.listdir(f'data/{dataset_name}')
         self.hypergraph = sp.load_npz(f'data/{dataset_name}/hypergraph.npz')
@@ -202,161 +202,6 @@ class Dataset:
         pickle.dump(edge_multi_cls_split, open(f'data/{self.name}/edge_multi_split_{train_ratio}.pickle', 'wb'))
         return edge_multi_cls_split
 
-
-class DynamicDataset:
-    def __init__(self, dataset_name):
-        self.name = dataset_name
-        self.rng = np.random.default_rng(0)
-        data_files = os.listdir(f'data/{dataset_name}')
-        if dataset_name.endswith('_dynamic'):
-            with open(f'data/{dataset_name}/{dataset_name}.pkl', 'rb') as f:
-                self.data_dict = pickle.load(f)
-            self.full_hypergraph = self.data_dict['hypergraph']
-            self.features = self.data_dict['features'].astype(np.float32)
-            self.labels = self.data_dict['labels']
-            self.n = self.features.shape[0]
-            self.num_classes = len(np.unique(self.labels))
-            self.node_ptrs = self.data_dict['n_ptrs']
-            self.hyperedge_ptrs = self.data_dict['he_ptrs']
-            self.max_snapshot = len(self.node_ptrs)-1
-        else:
-            # Evenly divide a static dataset into 10 snapshots
-            self.full_hypergraph = sp.load_npz(f'data/{dataset_name}/hypergraph.npz')
-            self.features = sp.load_npz(f'data/{dataset_name}/features.npz').astype(np.float32)
-            self.labels = np.load(f'data/{dataset_name}/labels.npy') 
-            self.n = self.features.shape[0]
-            self.num_classes = len(np.unique(self.labels))
-            self.max_snapshot = 10
-            # divide hyperedges and reorder nodes
-            self.hyperedge_ptrs = np.linspace(0, self.full_hypergraph.shape[0], self.max_snapshot+1, dtype = np.int32)
-            self.hyperedge_ptrs[-1] = self.full_hypergraph.shape[0]
-            self.node_ptrs = np.zeros_like(self.hyperedge_ptrs)
-            for i in range(1, self.max_snapshot):
-                current_node_degree = self.full_hypergraph[:self.hyperedge_ptrs[i], :].sum(0).A1
-                self.fullhypergraph = sp.hstack([self.full_hypergraph[:, current_node_degree > 0], self.full_hypergraph[:, current_node_degree == 0]])
-                self.node_ptrs[i] = (current_node_degree > 0).sum()
-            self.node_ptrs[-1] = self.n
-        if not sp.isspmatrix_csr(self.full_hypergraph):
-            self.full_hypergraph = self.full_hypergraph.tocsr()
-
-        node_split_files = [f for f in data_files if f.startswith ('dynamic_node_split')]
-        self.node_splits = {} if len(node_split_files) > 0 else None
-        for file in node_split_files:
-            train_ratio = float(file[:-7].split('_')[-1])
-            self.node_splits[train_ratio] = (pickle.load(open(f'data/{dataset_name}/{file}', 'rb')))
-        neg_hyperedge_files = [f for f in data_files if 'neg_hypergraph_s' in f]
-        if len(neg_hyperedge_files) == self.max_snapshot:
-            self.edge_splits = {}
-            self.neg_hg = [sp.load_npz(f'data/{dataset_name}/neg_hypergraph_s{i}.npz') for i in range(1,self.max_snapshot+1)]
-            edge_split_files = [f for f in data_files if f.startswith ('dynamic_hyperedge_split')]
-            for file in edge_split_files:
-                train_ratio = float(file[:-7].split('_')[-1])
-                self.edge_splits[train_ratio] = pickle.load(open(f'data/{dataset_name}/{file}', 'rb'))
-        else:
-            self.neg_hg = None
-            self.edge_splits = None
-
-    def get_ahg_snapshot(self, snapshot_idx):
-        snapshot_hypergraph = self.full_hypergraph[:self.hyperedge_ptrs[snapshot_idx], :self.node_ptrs[snapshot_idx]]
-        snapshot_features = self.features[:self.node_ptrs[snapshot_idx]]
-        snapshot_labels = self.labels[:self.node_ptrs[snapshot_idx]]
-        return AttrHypergraph(snapshot_hypergraph, snapshot_features, f'{self.name}_s{snapshot_idx}',snapshot_labels)
-    
-    def get_snapshot_range(self, snapshot_idx):
-        return self.node_ptrs[snapshot_idx-1], self.node_ptrs[snapshot_idx], self.hyperedge_ptrs[snapshot_idx-1], self.hyperedge_ptrs[snapshot_idx]
-        
-    def dynamic_node_cls_split(self, train_ratio, num_splits, labels):
-        node_cls_split = []
-        for _ in range(num_splits):
-            idx = self.rng.permutation(len(labels))
-            train_idx = idx[:int(len(labels)*train_ratio)]
-            test_idx = idx[int(len(labels)*train_ratio):]
-            node_cls_split.append((train_idx, test_idx))
-        return node_cls_split
-
-        # generate negative hyperedges for link prediction rewrite for large graphs
-    
-    def generate_negative_hyperedges(self, hypergraph, snapshot, ratio=1.0):
-        # ratio: number of negative hyperedges / number of positive hyperedges
-        num_node = hypergraph.shape[1]
-        num_pos = hypergraph.shape[0]
-        num_neg = int(num_pos * ratio)
-        pos_hyperedge_sizes = np.diff(hypergraph.indptr)
-        # Repeat the positive hyperedge sizes to match the number of negative hyperedges
-        neg_hyperedge_sizes = np.tile(pos_hyperedge_sizes, num_neg // num_pos + 1)[:num_neg]
-        # Generate the negative hyperedges in batch
-        indices = np.concatenate([self.rng.choice(num_node, size, replace=False) for size in neg_hyperedge_sizes])
-        # Create the indptr array based on the hyperedge sizes
-        indptr = np.cumsum(np.concatenate(([0], neg_hyperedge_sizes)))
-        neg_hg = sp.csr_matrix((np.ones(len(indices)), indices, indptr), shape=(num_neg, num_node))
-        sp.save_npz(f'data/{self.name}/neg_hypergraph_s{snapshot}.npz', neg_hg)
-
-    def new_lp_split(self, hypergraph, snapshot, train_ratio = 0.8, num_splits = 10, lp_snapshot_split_dict = None):
-        lp_splits = []
-        if not os.path.exists(f'data/{self.name}/neg_hypergraph_s{snapshot}.npz'):
-            self.generate_negative_hyperedges(hypergraph = hypergraph, snapshot=snapshot)
-        neg_hg = sp.load_npz(f'data/{self.name}/neg_hypergraph_s{snapshot}.npz')
-        num_pos = hypergraph.shape[0] - self.hyperedge_ptrs[snapshot-1]
-        num_pos_train = int(num_pos * train_ratio)
-        num_neg = neg_hg.shape[0] - self.hyperedge_ptrs[snapshot-1]
-        num_neg_train = int(num_neg * train_ratio)
-        for i in range(num_splits):
-            if snapshot == 1:
-                pos_idx = self.rng.permutation(hypergraph.shape[0])
-                neg_idx = self.rng.permutation(neg_hg.shape[0]) + num_pos
-                # hyperedges for embedding
-                train_pos_idx = pos_idx[:num_pos_train]
-                train_idx = np.concatenate((train_pos_idx, neg_idx[:num_neg_train]))
-                train_labels = np.concatenate((np.ones(num_pos_train), np.zeros(num_neg_train)))
-                test_idx = np.concatenate((pos_idx[num_pos_train:], neg_idx[num_neg_train:]))
-                test_labels = np.concatenate((np.ones(num_pos - num_pos_train), np.zeros(num_neg - num_neg_train)))
-            else:
-                pos_idx = self.rng.permutation(hypergraph.shape[0]-self.hyperedge_ptrs[snapshot-1]) + self.hyperedge_ptrs[snapshot-1]
-                neg_idx = self.rng.permutation(hypergraph.shape[0]-self.hyperedge_ptrs[snapshot-1]) + self.hyperedge_ptrs[snapshot-1] + hypergraph.shape[0]
-                train_pos_idx = pos_idx[:num_pos_train]
-                train_idx = np.concatenate((train_pos_idx, neg_idx[:num_neg_train]))
-                train_labels = np.concatenate((np.ones(num_pos_train), np.zeros(num_neg_train)))
-                test_idx = np.concatenate((pos_idx[num_pos_train:], neg_idx[num_neg_train:]))
-                test_labels = np.concatenate((np.ones(num_pos - num_pos_train), np.zeros(num_neg - num_neg_train)))
-
-            # shuffle train samples
-            shuffle_idx = self.rng.permutation(len(train_idx))
-            train_idx = train_idx[shuffle_idx]
-            train_labels = train_labels[shuffle_idx]
-
-            # shuffle test samples
-            shuffle_idx = self.rng.permutation(len(test_idx))
-            test_idx = test_idx[shuffle_idx]
-            test_labels = test_labels[shuffle_idx]
-
-            if snapshot !=1:
-                train_pos_idx =  np.concatenate((lp_snapshot_split_dict[snapshot-1][i][0],train_pos_idx))
-                train_idx = np.concatenate((lp_snapshot_split_dict[snapshot-1][i][1][0],train_idx))
-                train_labels = np.concatenate((lp_snapshot_split_dict[snapshot-1][i][1][1],train_labels))
-                test_idx = np.concatenate((lp_snapshot_split_dict[snapshot-1][i][2][0],test_idx))
-                test_labels = np.concatenate((lp_snapshot_split_dict[snapshot-1][i][2][1],test_labels))
-            lp_splits.append((train_pos_idx, (train_idx, train_labels), (test_idx, test_labels)))
-
-        lp_snapshot_split_dict[snapshot] = lp_splits
-        return lp_snapshot_split_dict
-
-    def node_cls_save_with_splits(self, nc_train_ratio = 0.2):
-        node_cls_snapshot_split_dict = {}
-        for i in range(1, self.max_snapshot+1):
-            ahg_snapshot = self.get_ahg_snapshot(i)
-            node_cls_split = self.dynamic_node_cls_split(nc_train_ratio, 10, ahg_snapshot.labels)
-            node_cls_snapshot_split_dict[i] = node_cls_split
-        with open(f'data/{self.name}/dynamic_node_split_{nc_train_ratio}.pickle', 'wb') as f:
-            pickle.dump(node_cls_snapshot_split_dict , f)
-
-    def hyperedge_lp_save_with_splits(self,lp_train_ratio = 0.8):
-        lp_snapshot_split_dict = {}
-        for i in range(1, self.max_snapshot+1):
-            ahg_snapshot = self.get_ahg_snapshot(i)
-            lp_snapshot_split_dict = self.new_lp_split(ahg_snapshot.hypergraph, snapshot=i, train_ratio=lp_train_ratio, lp_snapshot_split_dict=lp_snapshot_split_dict)
-        with open(f'data/{self.name}/dynamic_hyperedge_split_{lp_train_ratio}.pickle', 'wb') as f:
-            pickle.dump(lp_snapshot_split_dict , f)
-        
 # def load_data(dataset_name):
 #     dataset = {}
 #     dataset['hypergraph'] = sp.load_npz(f'data/{dataset_name}/hypergraph.npz')
@@ -370,10 +215,6 @@ class DynamicDataset:
 if __name__== '__main__':
 
     dataset = Dataset("cora-CA")
-    # dataset = DynamicDataset("cora-CA")
-    # dataset.node_cls_save_with_splits()
-    # dataset.hyperedge_lp_save_with_splits()
-    # dataset.new_edge_single_cls_split()
     dataset.generate_edge_single_label()
     dataset.new_edge_single_cls_split()
     dataset.generate_edge_multi_labels()
