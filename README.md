@@ -10,7 +10,7 @@ Required packages are installed by running:
 
 ### Usage
 
-The DBLP-CA, Cora-CA, Cora-CC, Citeseer, 20News, DBLP datasets are provided in this repository. Due to file size limit, Amazon and MAG-PM dataset will be released via external links.
+The DBLP-CA, Cora-CA, Cora-CC, Citeseer, 20News, DBLP datasets are provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM dataset will be released via external links.
 
 To test SAHE embedding algorithm on a dataset, simply run main.py with the dataset name as argument:
 
