@@ -2,25 +2,37 @@
 
 This is the implementation of SAHE algorithm, designed for the attributed hypergraph node and hyperedge embedding (AHNEE) problem.
 
-### Prerequisites
+### Pre-requisites
 
-Required packages are installed by running:
+Set up a conda environment with required packages by:
 
     conda create --name AHNEE --file requirements.txt -c pytorch
+    conda activate AHNEE
 
 ### Usage
 
-The DBLP-CA, Cora-CA, Cora-CC, Citeseer, 20News, DBLP datasets are provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM dataset will be released via external links.
+To test the SAHE embedding algorithmm, please provide the name of the dataset:
 
-To test SAHE embedding algorithm on a dataset, simply run main.py with the dataset name as argument:
+    python main.py --data DBLP-CA
 
-    python main.py --data $DATASET
+The DBLP-CA, Cora-CA, Cora-CC, Citeseer, 20News, DBLP datasets are readily provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM dataset will be released via external links.
 
-The program will print evaluation results and save the node and hyperedge embeddings in the "output" folder. Note that the evaluation results may fluctuate across different runs and random dataset splits.
+Supported command line arguments are as follows:
 
-Below is an example outcome from SAHE on the DBLP-CA dataset:
+| Parameter  | Default | Description                                           |
+|------------|---------|-------------------------------------------------------|
+| --data    | DBLP-CA      | A dataset from DBLP-CA, Cora-CA, Cora-CC, Citeseer, 20News, and DBLP.     |
+| --knn    | 10      | $K$ for constructing attribute-based hyperedges.          |
+| --beta    | 1.0      | $\beta$ for balancing structural and attribute information.          |
+| --rank    | 32      | $r$ for the output rank of truncated SVD.          |
+
+
+The program will print evaluation results and save the node and hyperedge embeddings in the "output" folder. 
+
+Below is an example outcome from SAHE on the DBLP-CA dataset. *Note that the evaluation results may fluctuate across different runs and random dataset splits.*
 
 ```
+Running SAHE on DBLP-CA dataset
 python main.py --data DBLP-CA
 Embedding time: 0.341s / RAM: 0.194GB
 Node classification results:

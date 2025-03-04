@@ -14,7 +14,8 @@ class AttrHypergraph:
 
 class Dataset:
     def __init__(self, dataset_name):
-        self.name = dataset_name.lower()
+        dataset_name = dataset_name.lower()
+        self.name = dataset_name
         self.rng = np.random.default_rng()
         data_files = os.listdir(f'data/{dataset_name}')
         self.hypergraph = sp.load_npz(f'data/{dataset_name}/hypergraph.npz')
