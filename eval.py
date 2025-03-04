@@ -5,6 +5,8 @@ from load import AttrHypergraph
 import config
 import utils
 from sklearn import metrics
+import warnings
+warnings.simplefilter("ignore", sp.SparseEfficiencyWarning)
 
 def node_classification_eval(embeddings, dataset):
     if dataset.n > 1000000:

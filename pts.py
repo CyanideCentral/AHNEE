@@ -44,7 +44,7 @@ def tensor_sketches(U, coeffs=[0.0002, 0.2319, 0.366, 0.001], sketch_dim=10):
         tu.append(ifft(fu).real)
         c_vecs.append(np.full(sketch_dim, coeffs[i]))
     c_diag = sp.diags(np.concatenate(c_vecs))
-    tu = np.c_[*tu]
+    tu = np.concatenate([ _ for _ in tu], axis=1) 
     return tu, c_diag
 
 def pts_tlog(U):
