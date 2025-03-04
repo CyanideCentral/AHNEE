@@ -22,7 +22,7 @@ Below is an example outcome from SAHE on the DBLP-CA dataset:
 
 ```
 python main.py --data DBLP-CA
-Embedding time: 1.637s / RAM: 0.222GB
+Embedding time: 0.341s / RAM: 0.194GB
 Node classification results:
 MIF1 avg: 0.824 / MIF1 std: 0.007 / MAF1 avg: 0.816 / MAF1 std: 0.008
 Hyperedge classification results:
