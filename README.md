@@ -1,6 +1,6 @@
 # SAHE: Scalable Attributed Hypergraph node and hyperedge Embedding
 
-This is the implementation of SAHE algorithm, designed for the attributed hypergraph node and hyperedge embedding (AHNEE) problem.
+This is the implementation of the SAHE algorithm, designed for the attributed hypergraph node and hyperedge embedding (AHNEE) problem.
 
 ### Pre-requisites
 
@@ -11,13 +11,13 @@ Set up a conda environment with required packages by:
 
 ### Usage
 
-To test the SAHE embedding algorithmm, please provide the name of the dataset:
+To test the SAHE embedding algorithm, please provide the name of the dataset:
 
     python main.py --data DBLP-CA
 
-The DBLP-CA, Cora-CA, Cora-CC, Citeseer, Mushroom, 20News, DBLP and Recipe datasets are readily provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM dataset will be released via external links.
+The DBLP-CA, Cora-CA, Cora-CC, Citeseer, Mushroom, 20News, DBLP and Recipe datasets are readily provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM datasets will be released via external links.
 
-Supported command line arguments are as follows:
+Supported command line arguments are listed as follows:
 
 | Parameter  | Default | Description                                           |
 |------------|---------|-------------------------------------------------------|
