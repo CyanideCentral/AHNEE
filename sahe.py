@@ -12,7 +12,7 @@ def extend_hypergraph(ahg, knn = 10, index_type = "IVF512,PQ10"):
     attributes = ahg.attributes.toarray()
     n, d = attributes.shape
     faiss.normalize_L2(attributes)
-    if n > 100000: # Use IVF for large datasets
+    if n > 1000000: # Use IVF for large datasets
         index = faiss.index_factory(d, index_type, faiss.METRIC_INNER_PRODUCT)
         index.train(attributes)
     else: # exact search for small datasets

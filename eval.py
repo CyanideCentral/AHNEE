@@ -34,6 +34,7 @@ def node_classification_eval(embeddings, dataset):
     print(f"MIF1 avg: {np.mean(mif1_results):.3f} / MIF1 std: {np.std(mif1_results):.3f} / MAF1 avg: {np.mean(maf1_results):.3f} / MAF1 std: {np.std(maf1_results):.3f}")
 
 def hyperedge_link_prediction_eval(embedder, dataset):
+    print("Running hyperedge link prediction tests...")
     if dataset.n > 1000000:
         config.lp_train_ratio = 0.98
     if dataset.neg_hg is None or (config.lp_train_ratio not in dataset.edge_splits.keys()):
