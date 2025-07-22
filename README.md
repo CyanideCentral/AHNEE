@@ -1,6 +1,6 @@
-# SAHE: Scalable Attributed Hypergraph node and hyperedge Embedding
+# Effective and Efficient Attributed Hypergraph Embedding on Nodes and Hyperedges (VLDB 2025)
 
-This is the implementation of the SAHE algorithm, designed for the attributed hypergraph node and hyperedge embedding (AHNEE) problem.
+This repository contains the implementation of the SAHE algorithm, designed as a scalable solution for the attributed hypergraph node and hyperedge embedding (AHNEE) problem.
 
 ### Pre-requisites
 
@@ -15,7 +15,7 @@ To test the SAHE embedding algorithm, please provide the name of the dataset:
 
     python main.py --data DBLP-CA
 
-The DBLP-CA, Cora-CA, Cora-CC, Citeseer, Mushroom, 20News, DBLP and Recipe datasets are readily provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM datasets will be released via external links.
+The DBLP-CA, Cora-CA, Cora-CC, Citeseer, Mushroom, 20News, DBLP and Recipe datasets are readily provided in this repository. Due to the limit of file size on GitHub, Amazon and MAG-PM datasets are released via [Zenodo](https://zenodo.org/records/16307348).
 
 Supported command line arguments are listed as follows:
 
@@ -25,6 +25,7 @@ Supported command line arguments are listed as follows:
 | --knn    | 10      | $K$ for constructing attribute-based hyperedges.          |
 | --beta    | 1.0      | $\beta$ for balancing structural and attribute information.          |
 | --rank    | 32      | $r$ for the output rank of truncated SVD.          |
+| --base    |       | Run Base embedding algorithm instead of SAHE.          |
 
 
 The program will print evaluation results and save the node and hyperedge embeddings in the "output" folder. 
