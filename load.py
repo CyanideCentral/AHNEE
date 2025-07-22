@@ -45,10 +45,7 @@ class Dataset:
             self.neg_hg = None
             self.edge_splits = None
 
-        if "hyperedge_label.npy" not in data_files:
-            self.edge_labels = self.generate_hyperedge_label()
-        else:
-            self.edge_labels = np.load(f'data/{dataset_name}/hyperedge_label.npy')
+        self.edge_labels = np.load(f'data/{dataset_name}/hyperedge_labels.npy')
 
         hyperedge_split_files = [f for f in data_files if f.startswith('hyperedge_split')]
         self.hyperedge_splits = {} if len(hyperedge_split_files) > 0 else None
